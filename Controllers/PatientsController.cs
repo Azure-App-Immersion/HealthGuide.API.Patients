@@ -35,5 +35,21 @@ namespace HealthGuide.API.Patients.Controllers
             }
             return Ok(patientMatch);
         }
+
+        [HttpGet("name/{firstName}/{lastName}", Name = "GetPatientByName")]
+        public async Task<IActionResult> Get(string firstName, string lastName)
+        {
+            Patient patientMatch = await _patientsContext.Patients.Include(p => p.Visits)
+                .SingleOrDefaultAsync(patient => 
+                    patient.FirstName.ToLower() == firstName.ToLower() 
+                    && 
+                    patient.LastName.ToLower() == lastName.ToLower()
+                );
+            if (patientMatch == null)
+            {
+                return NotFound();
+            }
+            return Ok(patientMatch);
+        }
     }
 }
