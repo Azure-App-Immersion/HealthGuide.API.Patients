@@ -21,12 +21,12 @@ namespace HealthGuide.API.Patients.Controllers
             _patientsContext.Database.EnsureCreated();
         }
 
-        [HttpGet("visits/{id}", Name = "GetVisitsForPatient")]
-        public async Task<IActionResult> Get(int id)
+        [HttpGet("visits/{patientid}", Name = "GetVisitsForPatient")]
+        public async Task<IActionResult> Get(int patientid)
         {
             Patient patientMatch = await _patientsContext.Patients
                 .Include(patient => patient.Visits)
-                .SingleOrDefaultAsync(patient => patient.Id == id);
+                .SingleOrDefaultAsync(patient => patient.Id == patientid);
             if (patientMatch == null)
             {
                 return NotFound();
@@ -34,20 +34,20 @@ namespace HealthGuide.API.Patients.Controllers
             return Ok(patientMatch.Visits);
         }
 
-        [HttpPost(Name = "AddVisitForPatient")]
-        public async Task<IActionResult> RecordAppointment(Appointment appointment)
-        {
+        [HttpPost("record", Name = "AddVisitForPatient")]
+        public async Task<IActionResult> Post([FromBody]Appointment appointment)
+        {            
             Patient patientMatch = await _patientsContext.Patients.Where(
-                p => p.LastName.Equals(appointment.Patient.LastName, StringComparison.OrdinalIgnoreCase)
-            ).Where(
-                p => p.FirstName.Equals(appointment.Patient.FirstName, StringComparison.OrdinalIgnoreCase)
+                p => p.LastName.ToLower() == appointment.Patient.LastName.ToLower()
+                &&
+                p.FirstName.ToLower() == appointment.Patient.FirstName.ToLower()
             ).FirstOrDefaultAsync();
             if (patientMatch == null) {
                 _patientsContext.Patients.Add(appointment.Patient);
                 patientMatch = appointment.Patient;
             }
             Visit newVisit = appointment.Visit;
-            patientMatch.Visits.Add(newVisit);
+            patientMatch.Visits = new List<Visit> { newVisit };
             await _patientsContext.SaveChangesAsync();
             return CreatedAtRoute("GetVisit", new { id = newVisit.Id }, newVisit);
         }

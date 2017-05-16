@@ -28,12 +28,12 @@ namespace HealthGuide.API.Patients.Controllers
         [HttpGet("{id}", Name = "GetPatient")]
         public async Task<IActionResult> Get(int id)
         {
-            Patient patient = await _patientsContext.Patients.Include(p => p.Visits).SingleOrDefaultAsync(patient => patient.Id == id);
-            if (patient == null)
+            Patient patientMatch = await _patientsContext.Patients.Include(p => p.Visits).SingleOrDefaultAsync(patient => patient.Id == id);
+            if (patientMatch == null)
             {
                 return NotFound();
             }
-            return Ok(patient);
+            return Ok(patientMatch);
         }
     }
 }
